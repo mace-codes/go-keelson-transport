@@ -9,7 +9,7 @@ type Reporter = health.Reporter
 type ReporterResponse = health.ReporterResponse
 
 var RegisterChiRoutes = routes.RegisterChiRoutes
-var RegisterGMuxROutes = routes.RegisterGMUXRoutes
+var RegisterGMuxRoutes = routes.RegisterGMUXRoutes
 
 type RoutesConfig = routes.RoutesConfig
 type Adapter = routes.Adapter
