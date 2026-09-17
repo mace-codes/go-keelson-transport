@@ -72,5 +72,4 @@ Swapping to Gorilla Mux is a two-argument change: `mux.NewRouter()` + `transport
 A few items worth flagging before this is treated as load-bearing infrastructure:
 
 - **TLS is unimplemented.** `ListenAndServe` carries a `// TODO: handle serving TLS w/ Cert and Key` — currently plaintext-only; services likely terminate TLS upstream (LB/ingress), but that assumption should be stated explicitly rather than left implicit.
-- **`health.IsReady` has a control-flow bug.** On an unhealthy critical dependency it calls `RespondJSON` but does not `return`, then falls through and calls `RespondJSON` again with `"ok"`. The second call double-writes the response (a logged "superfluous WriteHeader" warning, with only the first status code actually honored by the client) — net effect, an unhealthy critical dependency doesn't reliably fail readiness. Worth a fix before this gates deploys/orchestration.
 - **No middleware/timeout defaults** — `Adapter` composition is entirely the caller's responsibility; there's no built-in request timeout, panic recovery, or logging middleware supplied out of the box.
