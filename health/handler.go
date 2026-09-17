@@ -86,8 +86,12 @@ func Health(deps Dependencies) http.HandlerFunc {
 			Results: results,
 		}
 
-		// TODO: write health status codes, replace hard coded 200
-		rest.RespondJSON(w, r, 200, nil, resp)
+		code := http.StatusOK
+		if status == Unhealthy {
+			code = http.StatusServiceUnavailable
+		}
+
+		rest.RespondJSON(w, r, code, nil, resp)
 	}
 }
 
