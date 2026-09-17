@@ -2,7 +2,7 @@ package health
 
 // ReporterResponse represents the response structure for a health check, including the overall status and individual component reports.
 type ReporterResponse struct {
-	Component string         `json:"components"`
+	Component string         `json:"component"`
 	Healthy   bool           `json:"healthy"`
 	Status    string         `json:"status"`
 	Message   string         `json:"message,omitempty"`

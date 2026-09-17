@@ -65,7 +65,7 @@ func main() {
 }
 ```
 
-Swapping to Gorilla Mux is a two-argument change: `mux.NewRouter()` + `transport.RegisterGMuxROutes`.
+Swapping to Gorilla Mux is a two-argument change: `mux.NewRouter()` + `transport.RegisterGMuxRoutes`.
 
 ## Notes for reviewers
 
