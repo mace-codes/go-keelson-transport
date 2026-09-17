@@ -101,7 +101,8 @@ func IsReady(deps Dependencies) http.HandlerFunc {
 		for _, reporter := range deps.Critical() {
 			if !reporter.Health().Healthy {
 				resp := response{Status: Unhealthy.String()}
-				rest.RespondJSON(w, r, http.StatusOK, nil, resp)
+				rest.RespondJSON(w, r, http.StatusServiceUnavailable, nil, resp)
+				return
 			}
 		}
 
