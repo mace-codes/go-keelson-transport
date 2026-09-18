@@ -71,7 +71,9 @@ func Health(deps Dependencies) http.HandlerFunc {
 			result := reporter.Health()
 			results = append(results, Result{CriticalService: false, ReporterResponse: result})
 			if !result.Healthy {
-				status = Degraded
+				if status != Unhealthy {
+					status = Degraded
+				}
 				message += "(Optional) " + result.Component + ": " + result.Message + "\n"
 			}
 		}
