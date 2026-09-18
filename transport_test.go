@@ -6,11 +6,9 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"go.uber.org/zap"
 
 	transport "github.com/mace-codes/go-keelson-transport"
 	"github.com/mace-codes/go-keelson-transport/utils/logger"
-	"github.com/mace-codes/go-keelson-transport/utils/logger/zaplog"
 )
 
 type fakeConfig struct{}
@@ -61,18 +59,18 @@ func newTransport(t *testing.T, opts ...transport.Option) *transport.Transport[f
 	return srv
 }
 
-func TestLoggerDefaultsToZap(t *testing.T) {
+func TestLoggerDefaultsToNoop(t *testing.T) {
 	srv := newTransport(t)
 
 	got := srv.Logger()
 	if got == nil {
-		t.Fatal("Logger() = nil, want the zap default")
+		t.Fatal("Logger() = nil, want the no-op default")
 	}
 
-	// The default must be the zap adapter, not the no-op logger. Comparing
-	// types is how an external test can tell them apart, since both adapters
-	// are unexported.
-	want := reflect.TypeOf(zaplog.New(zap.NewNop()))
+	// Without WithLogger, the transport must stay silent by default —
+	// comparing types is how an external test can tell the no-op logger
+	// apart from a real adapter, since both are unexported.
+	want := reflect.TypeOf(transport.NoopLogger())
 	if gotType := reflect.TypeOf(got); gotType != want {
 		t.Errorf("Logger() type = %s, want %s", gotType, want)
 	}
@@ -81,9 +79,9 @@ func TestLoggerDefaultsToZap(t *testing.T) {
 	got.Info("default logger is wired", logger.String("k", "v"))
 }
 
-func TestNoopLoggerOptsOutOfZapDefault(t *testing.T) {
-	// Supplying the no-op logger explicitly is the documented way to silence
-	// the transport now that zap is the default.
+func TestNoopLoggerExplicitMatchesDefault(t *testing.T) {
+	// Supplying the no-op logger explicitly is equivalent to omitting
+	// WithLogger altogether.
 	srv := newTransport(t, transport.WithLogger(transport.NoopLogger()))
 
 	want := reflect.TypeOf(transport.NoopLogger())
