@@ -15,7 +15,7 @@ func RegisterChiRoutes(router http.Handler, routes []RoutesConfig) error {
 	}
 
 	for _, route := range routes {
-		hdlr, err := chiMuxAdapter(route.Handler, route.Adapters...)
+		hdlr, err := ChiMuxAdapter(route.Handler, route.Adapters...)
 		if err != nil {
 			return fmt.Errorf("failed to adapt handler for route %s: %w", route.Path, err)
 		}
