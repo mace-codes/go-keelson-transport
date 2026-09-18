@@ -28,6 +28,11 @@ go.work.sum
 .env
 
 # Editor/IDE
+<<<<<<< Updated upstream
+=======
+.claude/
+.remember/
+>>>>>>> Stashed changes
 .idea/
 .vscode/
 playground/
