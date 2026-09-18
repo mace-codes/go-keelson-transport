@@ -1,0 +1,9 @@
+# Keep every text file LF in the repository and in working trees.
+#
+# Git for Windows ships core.autocrlf=true in its system config, which checks
+# files out with CRLF. gofmt requires LF, so every freshly checked-out .go file
+# is reported as unformatted until it happens to be rewritten by an editor.
+#
+# Attributes take precedence over core.autocrlf, so this fixes the working tree
+# on every machine without asking contributors to change their Git config.
+* text=auto eol=lf

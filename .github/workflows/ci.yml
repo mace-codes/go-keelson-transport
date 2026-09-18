@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push to the same ref makes an in-flight run obsolete.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# One shell across both runners, so every step below is a single script.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ci:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The race detector needs cgo, which is dependably present on Linux.
+          - os: ubuntu-latest
+            race: "-race"
+          # Windows keeps the LF line endings honest: if .gitattributes ever
+          # regresses, core.autocrlf checks out CRLF and gofmt fails here.
+          - os: windows-latest
+            race: ""
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Verify formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "::error::gofmt reported unformatted files:"
+            echo "$unformatted"
+            gofmt -d .
+            exit 1
+          fi
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        run: go test ${{ matrix.race }} -covermode=atomic -coverprofile=coverage.out ./...
+
+      - name: Coverage
+        run: |
+          # Full per-function breakdown stays in the log; only the total goes
+          # to the run summary, since `cover -func` output is tab-padded.
+          go tool cover -func=coverage.out
+          total=$(go tool cover -func=coverage.out | tail -n 1 | awk '{print $NF}')
+          echo "Total coverage: $total"
+          echo "### Coverage — ${{ matrix.os }}: $total" >> "$GITHUB_STEP_SUMMARY"
+
+      # Run once: tidy output is platform-independent, so Linux is enough.
+      - name: Verify go.mod and go.sum are tidy
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          go mod tidy
+          if ! git diff --quiet -- go.mod go.sum; then
+            echo "::error::go.mod/go.sum are not tidy — run 'go mod tidy' and commit the result"
+            git diff -- go.mod go.sum
+            exit 1
+          fi
