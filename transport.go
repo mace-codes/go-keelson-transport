@@ -7,7 +7,6 @@ import (
 	"github.com/mace-codes/go-keelson-transport/health"
 	"github.com/mace-codes/go-keelson-transport/routes"
 	"github.com/mace-codes/go-keelson-transport/utils/logger"
-	"github.com/mace-codes/go-keelson-transport/utils/logger/zaplog"
 )
 
 // TransportConfig interface is used by a Transport to configure host and port for the server.
@@ -31,17 +30,13 @@ type options struct {
 // Option configures a Transport at construction time. Options are applied in the order they are passed to NewTransport.
 type Option func(*options)
 
-// WithLogger supplies the Logger the transport logs through, replacing the
-// zap default. A nil logger is ignored, leaving the default in place.
+// WithLogger supplies the Logger the transport logs through. Without it the
+// transport is silent — no logging implementation is imposed on consumers.
+// A nil logger is ignored, leaving the default in place.
 //
-// Adapters live under utils/logger — zaplog, zrlog (zerolog) and lrslog
-// (logrus):
+// Adapters for zap, zerolog and logrus live under utils/logger:
 //
-//	transport.WithLogger(zrlog.New(zl))
-//
-// To silence the transport entirely, pass the no-op logger explicitly:
-//
-//	transport.WithLogger(logger.Noop())
+//	transport.WithLogger(zaplog.New(zl))
 func WithLogger(l logger.Logger) Option {
 	return func(o *options) {
 		if l == nil {
@@ -52,8 +47,8 @@ func WithLogger(l logger.Logger) Option {
 	}
 }
 
-// Logger returns the Logger the transport was built with, or the zap default
-// if none was supplied. It never returns nil, so callers can log unconditionally.
+// Logger returns the Logger the transport was built with, or a no-op Logger if
+// none was supplied. It never returns nil, so callers can log unconditionally.
 func (t *Transport[C]) Logger() logger.Logger {
 	return t.logger
 }
@@ -64,24 +59,14 @@ func (t *Transport[C]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewTransport creates a new Transport instance with the provided configuration and router.
-// Without a WithLogger option it logs through zaplog.Default; pass WithLogger(logger.Noop()) for silence.
 func NewTransport[D health.Dependencies, C TransportConfig](deps D, config C, routesFactory routes.Factory[D], router http.Handler, routesRegistrar routes.Registrar, opts ...Option) (*Transport[C], error) {
-	var o options
+	o := options{logger: logger.Noop()}
 	for _, opt := range opts {
 		if opt == nil {
 			continue
 		}
 
 		opt(&o)
-	}
-
-	if o.logger == nil {
-		dflt, err := zaplog.Default()
-		if err != nil {
-			return nil, err
-		}
-
-		o.logger = dflt
 	}
 
 	t := &Transport[C]{
@@ -126,7 +111,6 @@ func NewTransport[D health.Dependencies, C TransportConfig](deps D, config C, ro
 }
 
 // ListenAndServe starts a server on the given host and port, and serves requests using the provided handler.
-// The startup line is emitted through the configured Logger — the zap default unless WithLogger says otherwise.
 func (t *Transport[C]) ListenAndServe() error {
 	addr := fmt.Sprintf("%s:%d", t.config.Host(), t.config.Port())
 	t.logStartup(addr)
