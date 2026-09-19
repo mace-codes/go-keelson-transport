@@ -1,3 +1,7 @@
+[![CI](https://github.com/mace-codes/go-keelson-transport/actions/workflows/ci.yml/badge.svg)](https://github.com/mace-codes/go-keelson-transport/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/mace-codes/go-keelson-transport.svg)](https://pkg.go.dev/github.com/mace-codes/go-keelson-transport)
+[![License](https://img.shields.io/github/license/mace-codes/go-keelson-transport)](LICENSE)
+
 # go-keelson-transport
 
 A pluggable HTTP transport layer for Keelson-based services. It defines a minimal, framework-agnostic **port** for routing and health-checking, with interchangeable **adapters** for Chi and Gorilla Mux — so infrastructure can swap routers via configuration without leaking either dependency into application code.
